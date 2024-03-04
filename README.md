@@ -1,0 +1,32 @@
+#  基于spring ai 脚手架
+
+```java
+    @Test
+    void streamChat() throws ExecutionException, InterruptedException {
+        // 构建一个异步函数，实现手动关闭测试函数
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        String message = """
+                年终总结
+                """;
+        PromptTemplate promptTemplate = new PromptTemplate("""
+                你是一个Java开发工程师，你擅长于写公司年底的工作总结报告，
+                根据：{message} 场景写100字的总结报告
+                """);
+        Prompt prompt = promptTemplate.create(Map.of("message", message));
+        chatClient.stream(prompt).subscribe(
+                chatResponse -> {
+                    System.out.println("response: " + chatResponse.getResult().getOutput().getContent());
+                },
+                throwable -> {
+                    System.err.println("err: " + throwable.getMessage());
+                },
+                () -> {
+                    System.out.println("complete~!");
+                    // 关闭函数
+                    future.complete(null);
+                }
+        );
+        future.get();
+    }
+```
